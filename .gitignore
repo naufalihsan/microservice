@@ -1,3 +1,8 @@
+.DS_Store
+
+# Air runtime
+tmp/
+
 .vscode/*
 !.vscode/settings.json
 !.vscode/tasks.json
