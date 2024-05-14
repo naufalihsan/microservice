@@ -1,6 +1,9 @@
 package main
 
-import "net/http"
+import (
+	"log"
+	"net/http"
+)
 
 type HttpHandler struct {
 }
@@ -13,4 +16,6 @@ func (h *HttpHandler) registerRoutes(mux *http.ServeMux) {
 	mux.HandleFunc("POST /api/customers/{customerID}/orders", h.handleCreateOrder)
 }
 
-func (h *HttpHandler) handleCreateOrder(w http.ResponseWriter, r *http.Request) {}
+func (h *HttpHandler) handleCreateOrder(w http.ResponseWriter, r *http.Request) {
+	log.Print("air hot reload")
+}
