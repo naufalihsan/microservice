@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"log"
 	"net"
 
@@ -22,12 +21,10 @@ func main() {
 	}
 	defer listener.Close()
 
-	NewGrpcHandler(grpcServer)
-
 	store := NewStore()
-	svc := NewService(store)
-	svc.CreateOrder(context.Background())
+	service := NewService(store)
 
+	NewGrpcHandler(grpcServer, service)
 	log.Printf("Start gRPC server at port %s", grpcAddress)
 
 	if err := grpcServer.Serve(listener); err != nil {

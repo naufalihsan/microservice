@@ -5,6 +5,8 @@ import (
 
 	common "github.com/naufalihsan/msvc-common"
 	pb "github.com/naufalihsan/msvc-common/api"
+	"google.golang.org/grpc/codes"
+	"google.golang.org/grpc/status"
 )
 
 type HttpHandler struct {
@@ -28,8 +30,20 @@ func (h *HttpHandler) handleCreateOrder(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	h.client.CreateOrder(r.Context(), &pb.CreateOrderRequest{
+	order, err := h.client.CreateOrder(r.Context(), &pb.CreateOrderRequest{
 		CustomerId:    customerId,
 		OrderProducts: orderProducts,
 	})
+
+	if errStatus := status.Convert(err); errStatus != nil {
+		if errStatus.Code() != codes.InvalidArgument {
+			common.WriteError(w, http.StatusBadRequest, errStatus.Message())
+			return
+		}
+
+		common.WriteError(w, http.StatusInternalServerError, err.Error())
+		return
+	}
+
+	common.WriteJSON(w, http.StatusOK, order)
 }
