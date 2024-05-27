@@ -1,9 +1,9 @@
 go 1.22.0
 
 use (
+	./api_gateway
 	./common
 	./delivery
-	./gateway
 	./inventory
 	./orders
 	./products
