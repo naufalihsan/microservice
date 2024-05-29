@@ -1,6 +1,6 @@
 ## Order Management System (Microservice)
 
-![Architecture Design](./project/architecture.png)
+![Architecture Design](./static/architecture.png)
 
 ### Installation
 ```bash

@@ -8,6 +8,7 @@ import (
 
 	_ "github.com/joho/godotenv/autoload"
 	common "github.com/naufalihsan/msvc-common"
+	"github.com/naufalihsan/msvc-common/broker"
 	"github.com/naufalihsan/msvc-common/discovery"
 	"github.com/naufalihsan/msvc-common/discovery/consul"
 	"google.golang.org/grpc"
@@ -16,6 +17,10 @@ import (
 var (
 	grpcAddress   = common.EnvString("GRPC_ADDR", "localhost:3000")
 	consulAddress = common.EnvString("CONSUL_ADDR", "localhost:8500")
+	amqpUser      = common.EnvString("AMQP_USER", "guest")
+	amqpPass      = common.EnvString("AMQP_PASS", "guest")
+	amqpHost      = common.EnvString("AMQP_HOST", "localhost")
+	amqpPort      = common.EnvString("AMQP_PORT", "5672")
 )
 
 func main() {
@@ -43,6 +48,12 @@ func main() {
 
 	defer registry.Deregister(ctx, instanceId, common.OrdersService)
 
+	channel, close := broker.Connect(amqpUser, amqpPass, amqpHost, amqpPort)
+	defer func() {
+		close()
+		channel.Close()
+	}()
+
 	grpcServer := grpc.NewServer()
 	listener, err := net.Listen("tcp", grpcAddress)
 	if err != nil {
@@ -53,7 +64,7 @@ func main() {
 	store := NewStore()
 	service := NewService(store)
 
-	NewGrpcHandler(grpcServer, service)
+	NewGrpcHandler(grpcServer, service, channel)
 	log.Printf("Start gRPC server at port %s", grpcAddress)
 
 	if err := grpcServer.Serve(listener); err != nil {
