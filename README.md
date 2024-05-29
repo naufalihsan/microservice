@@ -29,10 +29,10 @@ go install github.com/cosmtrek/air@latest
 
 - What's the different between direct and fanout exchange?
     | Aspect            | Direct Exchange                            | Fanout Exchange                                  |
-|-------------------|--------------------------------------------|--------------------------------------------------|
-| Routing Mechanism | Matches routing key exactly                | Ignores routing key, broadcasts to all queues    |
-| Granularity       | Fine-grained control based on routing keys | Broad dissemination, no filtering by routing key |
-| Use Case          | Targeted message delivery                  | Broadcast messages to multiple consumers         |
-| Performance       | Efficient for targeted delivery            | Can cause higher load due to broad dissemination |
-| Example Scenario  | Routing logs based on severity             | Broadcasting chat messages                       |
-| Pattern           | CQRS, Task Distribution                    | Event-Driven Architecture, Pub/Sub               |
+    |-------------------|--------------------------------------------|--------------------------------------------------|
+    | Routing Mechanism | Matches routing key exactly                | Ignores routing key, broadcasts to all queues    |
+    | Granularity       | Fine-grained control based on routing keys | Broad dissemination, no filtering by routing key |
+    | Use Case          | Targeted message delivery                  | Broadcast messages to multiple consumers         |
+    | Performance       | Efficient for targeted delivery            | Can cause higher load due to broad dissemination |
+    | Example Scenario  | Routing logs based on severity             | Broadcasting chat messages                       |
+    | Pattern           | CQRS, Task Distribution                    | Event-Driven Architecture, Pub/Sub               |
