@@ -3,6 +3,7 @@ package main
 import (
 	"net/http"
 
+	"github.com/naufalihsan/msvc-api-gateway/gateway"
 	common "github.com/naufalihsan/msvc-common"
 	pb "github.com/naufalihsan/msvc-common/api"
 	"google.golang.org/grpc/codes"
@@ -10,11 +11,11 @@ import (
 )
 
 type HttpHandler struct {
-	client pb.OrderServiceClient
+	ordersGateaway gateway.OrdersGateaway
 }
 
-func NewHttpHandler(client pb.OrderServiceClient) *HttpHandler {
-	return &HttpHandler{client}
+func NewHttpHandler(ordersGateaway gateway.OrdersGateaway) *HttpHandler {
+	return &HttpHandler{ordersGateaway}
 }
 
 func (h *HttpHandler) registerRoutes(mux *http.ServeMux) {
@@ -30,7 +31,7 @@ func (h *HttpHandler) handleCreateOrder(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	order, err := h.client.CreateOrder(r.Context(), &pb.CreateOrderRequest{
+	order, err := h.ordersGateaway.CreateOrder(r.Context(), &pb.CreateOrderRequest{
 		CustomerId:    customerId,
 		OrderProducts: orderProducts,
 	})
