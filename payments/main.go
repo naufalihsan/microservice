@@ -54,6 +54,11 @@ func main() {
 		channel.Close()
 	}()
 
+	service := NewService()
+
+	consumer := NewConsumer(service)
+	go consumer.Listen(channel)
+
 	grpcServer := grpc.NewServer()
 	listener, err := net.Listen("tcp", grpcAddress)
 	if err != nil {
