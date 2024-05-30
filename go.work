@@ -6,5 +6,6 @@ use (
 	./delivery
 	./inventory
 	./orders
+	./payments
 	./products
 )

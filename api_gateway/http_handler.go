@@ -11,11 +11,11 @@ import (
 )
 
 type HttpHandler struct {
-	ordersGateaway gateway.OrdersGateaway
+	orderGateaway gateway.OrderGateaway
 }
 
-func NewHttpHandler(ordersGateaway gateway.OrdersGateaway) *HttpHandler {
-	return &HttpHandler{ordersGateaway}
+func NewHttpHandler(orderGateaway gateway.OrderGateaway) *HttpHandler {
+	return &HttpHandler{orderGateaway}
 }
 
 func (h *HttpHandler) registerRoutes(mux *http.ServeMux) {
@@ -31,7 +31,7 @@ func (h *HttpHandler) handleCreateOrder(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	order, err := h.ordersGateaway.CreateOrder(r.Context(), &pb.CreateOrderRequest{
+	order, err := h.orderGateaway.CreateOrder(r.Context(), &pb.CreateOrderRequest{
 		CustomerId:    customerId,
 		OrderProducts: orderProducts,
 	})

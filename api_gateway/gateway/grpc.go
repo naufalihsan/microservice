@@ -17,7 +17,7 @@ func NewGrpcGateway(registry discovery.Registry) *GrpcGateway {
 }
 
 func (g *GrpcGateway) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*pb.Order, error) {
-	conn, err := discovery.ServiceConnection(ctx, common.OrdersService, g.registry)
+	conn, err := discovery.ServiceConnection(ctx, common.OrderService, g.registry)
 	if err != nil {
 		return nil, err
 	}

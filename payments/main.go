@@ -15,7 +15,7 @@ import (
 )
 
 var (
-	grpcAddress   = common.EnvString("GRPC_ADDR", "localhost:3000")
+	grpcAddress   = common.EnvString("GRPC_ADDR", "localhost:3001")
 	consulAddress = common.EnvString("CONSUL_ADDR", "localhost:8500")
 	amqpUser      = common.EnvString("AMQP_USER", "guest")
 	amqpPass      = common.EnvString("AMQP_PASS", "guest")
@@ -24,21 +24,21 @@ var (
 )
 
 func main() {
-	registry, err := consul.NewRegistry(consulAddress, common.OrderService)
+	registry, err := consul.NewRegistry(consulAddress, common.PaymentService)
 	if err != nil {
 		panic(err)
 	}
 
 	ctx := context.Background()
-	instanceId := discovery.GenerateInstanceId(common.OrderService)
+	instanceId := discovery.GenerateInstanceId(common.PaymentService)
 
-	if err := registry.Register(ctx, instanceId, common.OrderService, grpcAddress); err != nil {
+	if err := registry.Register(ctx, instanceId, common.PaymentService, grpcAddress); err != nil {
 		panic(err)
 	}
 
 	go func() {
 		for {
-			if err := registry.HealthCheck(instanceId, common.OrderService); err != nil {
+			if err := registry.HealthCheck(instanceId, common.PaymentService); err != nil {
 				log.Fatal("failed to health check")
 			}
 
@@ -46,7 +46,7 @@ func main() {
 		}
 	}()
 
-	defer registry.Deregister(ctx, instanceId, common.OrderService)
+	defer registry.Deregister(ctx, instanceId, common.PaymentService)
 
 	channel, close := broker.Connect(amqpUser, amqpPass, amqpHost, amqpPort)
 	defer func() {
@@ -61,10 +61,6 @@ func main() {
 	}
 	defer listener.Close()
 
-	store := NewStore()
-	service := NewService(store)
-
-	NewGrpcHandler(grpcServer, service, channel)
 	log.Printf("Start gRPC server at port %s", grpcAddress)
 
 	if err := grpcServer.Serve(listener); err != nil {
