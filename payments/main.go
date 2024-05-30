@@ -11,6 +11,8 @@ import (
 	"github.com/naufalihsan/msvc-common/broker"
 	"github.com/naufalihsan/msvc-common/discovery"
 	"github.com/naufalihsan/msvc-common/discovery/consul"
+	stripePayment "github.com/naufalihsan/msvc-payments/processor/stripe"
+	"github.com/stripe/stripe-go/v78"
 	"google.golang.org/grpc"
 )
 
@@ -21,6 +23,7 @@ var (
 	amqpPass      = common.EnvString("AMQP_PASS", "guest")
 	amqpHost      = common.EnvString("AMQP_HOST", "localhost")
 	amqpPort      = common.EnvString("AMQP_PORT", "5672")
+	stripeKey     = common.EnvString("STRIPE_KEY", "")
 )
 
 func main() {
@@ -48,13 +51,16 @@ func main() {
 
 	defer registry.Deregister(ctx, instanceId, common.PaymentService)
 
+	stripe.Key = stripeKey
+
 	channel, close := broker.Connect(amqpUser, amqpPass, amqpHost, amqpPort)
 	defer func() {
 		close()
 		channel.Close()
 	}()
 
-	service := NewService()
+	stripePayment := stripePayment.NewProcessor()
+	service := NewService(stripePayment)
 
 	consumer := NewConsumer(service)
 	go consumer.Listen(channel)

@@ -40,7 +40,12 @@ func (c *Consumer) Listen(channel *amqp.Channel) {
 				log.Fatal(err)
 			}
 
-			c.service.CreatePayment(context.Background(), order)
+			paymentLink, err := c.service.CreatePayment(context.Background(), order)
+			if err != nil {
+				log.Printf("failed to create payment: %v", err)
+			}
+
+			log.Printf("Payment link created %s", paymentLink)
 		}
 	}()
 

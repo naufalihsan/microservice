@@ -29,13 +29,9 @@ func NewGrpcHandler(s *grpc.Server, service OrderService, channel *amqp.Channel)
 func (h *GrpcHandler) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*pb.Order, error) {
 	log.Println("new order received 🛒 from Customer", req.CustomerId)
 
-	if err := h.service.ValidateOrder(ctx, req); err != nil {
+	order, err := h.service.CreateOrder(ctx, req)
+	if err != nil {
 		return nil, err
-	}
-
-	order := &pb.Order{
-		Id:         "1",
-		CustomerId: req.CustomerId,
 	}
 
 	jsonOrder, err := json.Marshal(order)
