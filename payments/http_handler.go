@@ -1,20 +1,30 @@
 package main
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
+	"time"
+
+	common "github.com/naufalihsan/msvc-common"
+	pb "github.com/naufalihsan/msvc-common/api"
+	"github.com/naufalihsan/msvc-common/broker"
+	amqp "github.com/rabbitmq/amqp091-go"
 
 	"github.com/stripe/stripe-go/v78"
 	"github.com/stripe/stripe-go/v78/webhook"
 )
 
-type HttpHandler struct{}
+type HttpHandler struct {
+	channel *amqp.Channel
+}
 
-func NewHttpHandler() *HttpHandler {
-	return &HttpHandler{}
+func NewHttpHandler(channel *amqp.Channel) *HttpHandler {
+	return &HttpHandler{channel}
 }
 
 func (h *HttpHandler) registerRoutes(mux *http.ServeMux) {
@@ -54,7 +64,27 @@ func (h *HttpHandler) handleStripeWebhook(w http.ResponseWriter, r *http.Request
 			return
 		}
 
+		order := &pb.Order{
+			Id:          session.Metadata["orderId"],
+			CustomerId:  session.Metadata["customerId"],
+			Status:      common.OrderStatusPaid,
+			PaymentLink: session.PaymentLink.ID,
+		}
+
+		jsonOrder, err := json.Marshal(order)
+		if err != nil {
+			log.Fatal(err)
+		}
+
+		ctx, cancel := context.WithTimeout(context.Background(), time.Second*5)
+		defer cancel()
+
 		if session.PaymentStatus == "paid" {
+			h.channel.PublishWithContext(ctx, broker.OrderPaidEvent, "", false, false, amqp.Publishing{
+				ContentType: "application/json",
+				Body:        jsonOrder,
+				Priority:    amqp.Persistent,
+			})
 		}
 	}
 

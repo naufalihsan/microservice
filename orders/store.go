@@ -30,7 +30,7 @@ func (s *Store) Create(ctx context.Context, req *pb.CreateOrderRequest, products
 	order := &pb.Order{
 		Id:         uniqueId,
 		CustomerId: customerId,
-		Status:     OrderStatusPending,
+		Status:     common.OrderStatusPending,
 		Products:   products,
 	}
 
@@ -48,6 +48,27 @@ func (s *Store) Get(ctx context.Context, customerId, orderId string) (*pb.Order,
 	}
 
 	return order, nil
+}
+
+func (s *Store) Update(ctx context.Context, order *pb.Order) (*pb.Order, error) {
+	uniqueKey := GenerateUniqueKey(order.CustomerId, order.Id)
+
+	updateOrder, ok := inmemStore[uniqueKey]
+	if !ok {
+		return nil, common.ErrInvalidOrder
+	}
+
+	if order.Status != "" {
+		updateOrder.Status = order.Status
+	}
+
+	if order.PaymentLink != "" {
+		updateOrder.PaymentLink = order.PaymentLink
+	}
+
+	inmemStore[uniqueKey] = updateOrder
+
+	return updateOrder, nil
 }
 
 func GenerateUniqueKey(customerId, orderId string) string {

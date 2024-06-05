@@ -58,3 +58,7 @@ func (h *GrpcHandler) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 func (h *GrpcHandler) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.Order, error) {
 	return h.service.GetOrder(ctx, req)
 }
+
+func (h *GrpcHandler) UpdateOrder(ctx context.Context, order *pb.Order) (*pb.Order, error) {
+	return h.service.UpdateOrder(ctx, order)
+}

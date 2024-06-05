@@ -8,6 +8,12 @@ var (
 	PaymentService    = "payments"
 )
 
+var (
+	OrderStatusPending        = "pending"
+	OrderStatusPaid           = "paid"
+	OrderStatusWaitingPayment = "waiting_payment"
+)
+
 func EnvString(key, fallback string) string {
 	if val, ok := syscall.Getenv(key); ok {
 		return val

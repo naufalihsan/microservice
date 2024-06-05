@@ -21,6 +21,7 @@ func (g *GrpcGateway) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 	if err != nil {
 		return nil, err
 	}
+	defer conn.Close()
 
 	client := pb.NewOrderServiceClient(conn)
 
@@ -32,6 +33,7 @@ func (g *GrpcGateway) GetOrder(ctx context.Context, customerId, orderId string) 
 	if err != nil {
 		return nil, err
 	}
+	defer conn.Close()
 
 	client := pb.NewOrderServiceClient(conn)
 

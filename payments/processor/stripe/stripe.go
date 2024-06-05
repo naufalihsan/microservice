@@ -36,6 +36,10 @@ func (s *Stripe) CreatePaymentLink(order *pb.Order) (string, error) {
 	successURL := fmt.Sprintf("%s/success.html?customerId=%s&orderId=%s", gatewayHttpAddress, order.CustomerId, order.Id)
 
 	params := &stripe.CheckoutSessionParams{
+		Metadata: map[string]string{
+			"orderId":    order.Id,
+			"customerId": order.CustomerId,
+		},
 		LineItems:  orderProducts,
 		Mode:       stripe.String(string(stripe.CheckoutSessionModePayment)),
 		SuccessURL: stripe.String(successURL),

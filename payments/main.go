@@ -12,6 +12,7 @@ import (
 	"github.com/naufalihsan/msvc-common/broker"
 	"github.com/naufalihsan/msvc-common/discovery"
 	"github.com/naufalihsan/msvc-common/discovery/consul"
+	"github.com/naufalihsan/msvc-payments/gateway"
 	stripePayment "github.com/naufalihsan/msvc-payments/processor/stripe"
 	"github.com/stripe/stripe-go/v78"
 	"google.golang.org/grpc"
@@ -63,13 +64,14 @@ func main() {
 	}()
 
 	stripePayment := stripePayment.NewProcessor()
-	service := NewService(stripePayment)
+	orderGateaway := gateway.NewGrpcGateway(registry)
+	service := NewService(stripePayment, orderGateaway)
 
 	consumer := NewConsumer(service)
 	go consumer.Listen(channel)
 
 	mux := http.NewServeMux()
-	httpHandler := NewHttpHandler()
+	httpHandler := NewHttpHandler(channel)
 	httpHandler.registerRoutes(mux)
 
 	go func() {
