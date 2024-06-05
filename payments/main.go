@@ -4,6 +4,7 @@ import (
 	"context"
 	"log"
 	"net"
+	"net/http"
 	"time"
 
 	_ "github.com/joho/godotenv/autoload"
@@ -17,13 +18,15 @@ import (
 )
 
 var (
-	grpcAddress   = common.EnvString("GRPC_ADDR", "localhost:3001")
-	consulAddress = common.EnvString("CONSUL_ADDR", "localhost:8500")
-	amqpUser      = common.EnvString("AMQP_USER", "guest")
-	amqpPass      = common.EnvString("AMQP_PASS", "guest")
-	amqpHost      = common.EnvString("AMQP_HOST", "localhost")
-	amqpPort      = common.EnvString("AMQP_PORT", "5672")
-	stripeKey     = common.EnvString("STRIPE_KEY", "")
+	grpcAddress          = common.EnvString("GRPC_ADDR", "localhost:3001")
+	httpAddress          = common.EnvString("HTTP_ADDR", "localhost:8001")
+	consulAddress        = common.EnvString("CONSUL_ADDR", "localhost:8500")
+	amqpUser             = common.EnvString("AMQP_USER", "guest")
+	amqpPass             = common.EnvString("AMQP_PASS", "guest")
+	amqpHost             = common.EnvString("AMQP_HOST", "localhost")
+	amqpPort             = common.EnvString("AMQP_PORT", "5672")
+	stripeKey            = common.EnvString("STRIPE_KEY", "sk_test_")
+	stripeEndpointSecret = common.EnvString("STRIPE_ENDPOINT_SECRET", "whsec_")
 )
 
 func main() {
@@ -65,6 +68,17 @@ func main() {
 	consumer := NewConsumer(service)
 	go consumer.Listen(channel)
 
+	mux := http.NewServeMux()
+	httpHandler := NewHttpHandler()
+	httpHandler.registerRoutes(mux)
+
+	go func() {
+		log.Printf("Start http server at port %s", httpAddress)
+		if err := http.ListenAndServe(httpAddress, mux); err != nil {
+			log.Fatalf("failed to start http server %v", err)
+		}
+	}()
+
 	grpcServer := grpc.NewServer()
 	listener, err := net.Listen("tcp", grpcAddress)
 	if err != nil {
@@ -73,7 +87,6 @@ func main() {
 	defer listener.Close()
 
 	log.Printf("Start gRPC server at port %s", grpcAddress)
-
 	if err := grpcServer.Serve(listener); err != nil {
 		log.Fatal(err.Error())
 	}
