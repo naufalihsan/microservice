@@ -32,12 +32,14 @@ func (s *Stripe) CreatePaymentLink(order *pb.Order) (string, error) {
 		})
 	}
 
-	successURL := fmt.Sprintf("%s/payments/success.html", gatewayHttpAddress)
+	cancelURL := fmt.Sprintf("%s/cancel.html", gatewayHttpAddress)
+	successURL := fmt.Sprintf("%s/success.html?customerId=%s&orderId=%s", gatewayHttpAddress, order.CustomerId, order.Id)
 
 	params := &stripe.CheckoutSessionParams{
 		LineItems:  orderProducts,
 		Mode:       stripe.String(string(stripe.CheckoutSessionModePayment)),
 		SuccessURL: stripe.String(successURL),
+		CancelURL:  stripe.String(cancelURL),
 	}
 
 	result, err := session.New(params)

@@ -24,8 +24,19 @@ func (g *GrpcGateway) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 
 	client := pb.NewOrderServiceClient(conn)
 
-	return client.CreateOrder(ctx, &pb.CreateOrderRequest{
-		CustomerId:    req.CustomerId,
-		OrderProducts: req.OrderProducts,
+	return client.CreateOrder(ctx, req)
+}
+
+func (g *GrpcGateway) GetOrder(ctx context.Context, customerId, orderId string) (*pb.Order, error) {
+	conn, err := discovery.ServiceConnection(ctx, common.OrderService, g.registry)
+	if err != nil {
+		return nil, err
+	}
+
+	client := pb.NewOrderServiceClient(conn)
+
+	return client.GetOrder(ctx, &pb.GetOrderRequest{
+		CustomerId: customerId,
+		OrderId:    orderId,
 	})
 }

@@ -9,8 +9,8 @@ import (
 )
 
 func TestService(t *testing.T) {
-	inMemProcessor := inmem.NewProcessor()
-	service := NewService(inMemProcessor)
+	inmemProcessor := inmem.NewProcessor()
+	service := NewService(inmemProcessor)
 
 	t.Run("should create payment link", func(t *testing.T) {
 		paymentLink, err := service.CreatePayment(context.Background(), &pb.Order{})

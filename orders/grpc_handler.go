@@ -34,6 +34,8 @@ func (h *GrpcHandler) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 		return nil, err
 	}
 
+	log.Printf("order %s successfully created ✅", order.Id)
+
 	jsonOrder, err := json.Marshal(order)
 	if err != nil {
 		return nil, err
@@ -51,4 +53,8 @@ func (h *GrpcHandler) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 	})
 
 	return order, nil
+}
+
+func (h *GrpcHandler) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.Order, error) {
+	return h.service.GetOrder(ctx, req)
 }
