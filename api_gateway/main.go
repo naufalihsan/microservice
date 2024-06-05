@@ -43,10 +43,10 @@ func main() {
 
 	defer registry.Deregister(ctx, instanceId, common.ApiGatewayService)
 
-	ordersGateaway := gateway.NewGrpcGateway(registry)
+	orderGateaway := gateway.NewGrpcGateway(registry)
 
 	mux := http.NewServeMux()
-	httpHandler := NewHttpHandler(ordersGateaway)
+	httpHandler := NewHttpHandler(orderGateaway)
 	httpHandler.registerRoutes(mux)
 
 	log.Printf("Start http server at port %s", httpAddress)

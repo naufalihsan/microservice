@@ -24,21 +24,21 @@ var (
 )
 
 func main() {
-	registry, err := consul.NewRegistry(consulAddress, common.OrdersService)
+	registry, err := consul.NewRegistry(consulAddress, common.OrderService)
 	if err != nil {
 		panic(err)
 	}
 
 	ctx := context.Background()
-	instanceId := discovery.GenerateInstanceId(common.OrdersService)
+	instanceId := discovery.GenerateInstanceId(common.OrderService)
 
-	if err := registry.Register(ctx, instanceId, common.OrdersService, grpcAddress); err != nil {
+	if err := registry.Register(ctx, instanceId, common.OrderService, grpcAddress); err != nil {
 		panic(err)
 	}
 
 	go func() {
 		for {
-			if err := registry.HealthCheck(instanceId, common.OrdersService); err != nil {
+			if err := registry.HealthCheck(instanceId, common.OrderService); err != nil {
 				log.Fatal("failed to health check")
 			}
 
@@ -46,7 +46,7 @@ func main() {
 		}
 	}()
 
-	defer registry.Deregister(ctx, instanceId, common.OrdersService)
+	defer registry.Deregister(ctx, instanceId, common.OrderService)
 
 	channel, close := broker.Connect(amqpUser, amqpPass, amqpHost, amqpPort)
 	defer func() {

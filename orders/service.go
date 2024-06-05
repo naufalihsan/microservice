@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 
 	common "github.com/naufalihsan/msvc-common"
 	pb "github.com/naufalihsan/msvc-common/api"
@@ -16,25 +15,56 @@ func NewService(store OrderStore) *Service {
 	return &Service{store}
 }
 
-func (s *Service) CreateOrder(context.Context) error {
-	return nil
+func (s *Service) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.Order, error) {
+	return s.store.Get(ctx, req.CustomerId, req.OrderId)
 }
 
-func (s *Service) ValidateOrder(ctx context.Context, req *pb.CreateOrderRequest) error {
+func (s *Service) UpdateOrder(ctx context.Context, order *pb.Order) (*pb.Order, error) {
+	return s.store.Update(ctx, order)
+}
+
+func (s *Service) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*pb.Order, error) {
+	products, err := s.ValidateOrder(ctx, req)
+	if err != nil {
+		return nil, err
+	}
+
+	order, err := s.store.Create(ctx, req, products)
+	if err != nil {
+		return nil, err
+	}
+
+	return order, nil
+}
+
+func (s *Service) ValidateOrder(ctx context.Context, req *pb.CreateOrderRequest) ([]*pb.Product, error) {
+	// temp inmem price id
+	priceTable := map[string]string{
+		"1": "price_1PM586FsDc9cxjmW18I8bBu3",
+		"2": "price_1PM59AFsDc9cxjmW6TCaCDfZ",
+	}
+
 	if len(req.OrderProducts) == 0 {
-		return common.ErrEmptyOrderProducts
+		return nil, common.ErrEmptyOrderProducts
 	}
 
 	for _, orderProduct := range req.OrderProducts {
 		if orderProduct.Quantity <= 0 {
-			return common.ErrInvalidOrderProductQuantity
+			return nil, common.ErrInvalidOrderProductQuantity
 		}
 	}
 
 	orderProducts := mergeOrderProductQuantity(req.OrderProducts)
-	log.Println(orderProducts)
 
-	return nil
+	products := []*pb.Product{}
+	for _, orderProduct := range orderProducts {
+		products = append(products, &pb.Product{
+			PriceId:  priceTable[orderProduct.ProductId],
+			Quantity: orderProduct.Quantity,
+		})
+	}
+
+	return products, nil
 }
 
 func mergeOrderProductQuantity(orderProducts []*pb.OrderProduct) []*pb.OrderProduct {

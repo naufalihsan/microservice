@@ -4,7 +4,14 @@ import "syscall"
 
 var (
 	ApiGatewayService = "apiGateway"
-	OrdersService     = "orders"
+	OrderService      = "orders"
+	PaymentService    = "payments"
+)
+
+var (
+	OrderStatusPending        = "pending"
+	OrderStatusPaid           = "paid"
+	OrderStatusWaitingPayment = "waiting_payment"
 )
 
 func EnvString(key, fallback string) string {
