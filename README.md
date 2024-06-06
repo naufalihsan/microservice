@@ -36,3 +36,14 @@ go install github.com/cosmtrek/air@latest
     | Performance       | Efficient for targeted delivery            | Can cause higher load due to broad dissemination |
     | Example Scenario  | Routing logs based on severity             | Broadcasting chat messages                       |
     | Pattern           | CQRS, Task Distribution                    | Event-Driven Architecture, Pub/Sub               |
+
+- Realibility
+  ```
+  - Message re-delivers or retries
+  - Dead letter queues
+  - Observability instrumentation
+  ```
+
+
+### Useful Links
+- https://docs.stripe.com/payments/

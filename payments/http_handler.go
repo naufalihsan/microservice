@@ -68,7 +68,7 @@ func (h *HttpHandler) handleStripeWebhook(w http.ResponseWriter, r *http.Request
 			Id:          session.Metadata["orderId"],
 			CustomerId:  session.Metadata["customerId"],
 			Status:      common.OrderStatusPaid,
-			PaymentLink: session.PaymentLink.ID,
+			PaymentLink: "",
 		}
 
 		jsonOrder, err := json.Marshal(order)
