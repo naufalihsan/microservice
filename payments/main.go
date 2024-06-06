@@ -20,6 +20,7 @@ import (
 
 var (
 	grpcAddress          = common.EnvString("GRPC_ADDR", "localhost:3001")
+	jaegerAddress        = common.EnvString("JAEGER_ADDR", "localhost:4318")
 	httpAddress          = common.EnvString("HTTP_ADDR", "localhost:8001")
 	consulAddress        = common.EnvString("CONSUL_ADDR", "localhost:8500")
 	amqpUser             = common.EnvString("AMQP_USER", "guest")
@@ -31,6 +32,10 @@ var (
 )
 
 func main() {
+	if err := common.SetGlobalTracer(context.TODO(), common.PaymentService, jaegerAddress); err != nil {
+		log.Fatal(err)
+	}
+
 	registry, err := consul.NewRegistry(consulAddress, common.PaymentService)
 	if err != nil {
 		panic(err)
