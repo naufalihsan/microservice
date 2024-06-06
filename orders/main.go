@@ -64,6 +64,9 @@ func main() {
 	store := NewStore()
 	service := NewService(store)
 
+	consumer := NewConsumer(service)
+	go consumer.Listen(channel, instanceId)
+
 	NewGrpcHandler(grpcServer, service, channel)
 	log.Printf("Start gRPC server at port %s", grpcAddress)
 

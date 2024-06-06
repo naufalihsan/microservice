@@ -24,7 +24,7 @@ func (c *Consumer) Listen(channel *amqp.Channel) {
 		log.Fatal(err)
 	}
 
-	messages, err := channel.Consume(queue.Name, "", true, false, false, false, nil)
+	messages, err := channel.Consume(queue.Name, "", false, false, false, false, nil)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -37,6 +37,7 @@ func (c *Consumer) Listen(channel *amqp.Channel) {
 
 			order := &pb.Order{}
 			if err := json.Unmarshal(message.Body, order); err != nil {
+				message.Nack(false, false)
 				log.Fatal(err)
 			}
 
@@ -45,10 +46,11 @@ func (c *Consumer) Listen(channel *amqp.Channel) {
 				log.Printf("failed to create payment: %v", err)
 			}
 
+			message.Ack(false)
+
 			log.Printf("Payment link created %s", paymentLink)
 		}
 	}()
 
 	<-forever
-
 }

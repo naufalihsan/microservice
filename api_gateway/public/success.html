@@ -126,21 +126,21 @@
         const response = await fetch(`/api/customers/${customerId}/orders/${orderId}`);
 
         const data = await response.json();
-        if (data.Status === 'waiting_payment') {
-            order.Status = 'Your order is waiting for payment...';
-            document.getElementById('orderStatus').innerText = order.Status;
+        if (data.status === 'waiting_payment') {
+            order.status = 'Your order is waiting for payment...';
+            document.getElementById('orderStatus').innerText = order.status;
 
             // show payment popup
             document.querySelector('.payment-popup').style.display = 'block';
-            document.getElementById('payment-link').href = data.PaymentLink;
+            document.getElementById('payment-link').href = data.paymentLink;
         }
-        if (data.Status === 'paid') {
-            order.Status = 'Your order has been paid for. Please way while its being prepared...';
-            document.getElementById('orderStatus').innerText = order.Status;
+        if (data.status === 'paid') {
+            order.status = 'Your order has been paid for. Please way while its being prepared...';
+            document.getElementById('orderStatus').innerText = order.status;
 
             setTimeout(poolOrderStatus, 5000);
-        } else if (data.Status === 'ready') {
-            order.Status = 'ready';
+        } else if (data.status === 'ready') {
+            order.status = 'ready';
 
             // close payment popup
             document.querySelector('.payment-popup').style.display = 'none';
@@ -148,7 +148,7 @@
             // show ready popup
             document.querySelector('.ready-popup').style.display = 'block';
             document.getElementById('orderId').innerText = orderId;
-            document.getElementById('orderStatus').innerText = order.Status;
+            document.getElementById('orderStatus').innerText = order.status;
         } else {
             setTimeout(poolOrderStatus, 5000);
         }
