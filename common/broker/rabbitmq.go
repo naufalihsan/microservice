@@ -7,6 +7,7 @@ import (
 	"time"
 
 	amqp "github.com/rabbitmq/amqp091-go"
+	"go.opentelemetry.io/otel"
 )
 
 const (
@@ -81,4 +82,37 @@ func HandleRetry(channel *amqp.Channel, message *amqp.Delivery) error {
 		Body:         message.Body,
 		DeliveryMode: amqp.Persistent,
 	})
+}
+
+func InjectHeaders(ctx context.Context) map[string]interface{} {
+	carrier := make(HeaderCarrier)
+	otel.GetTextMapPropagator().Inject(ctx, carrier)
+	return carrier
+}
+
+func ExtractHeader(ctx context.Context, headers map[string]interface{}) context.Context {
+	return otel.GetTextMapPropagator().Extract(ctx, HeaderCarrier(headers))
+}
+
+type HeaderCarrier map[string]interface{}
+
+func (h HeaderCarrier) Get(k string) string {
+	if value, ok := h[k].(string); ok {
+		return value
+	}
+	return ""
+}
+
+func (h HeaderCarrier) Set(k string, v string) {
+	h[k] = v
+}
+
+func (h HeaderCarrier) Keys() []string {
+	keys := make([]string, 0, len(h))
+
+	for k := range h {
+		keys = append(keys, k)
+	}
+
+	return keys
 }

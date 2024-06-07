@@ -71,8 +71,9 @@ func main() {
 	stripePayment := stripePayment.NewProcessor()
 	orderGateaway := gateway.NewGrpcGateway(registry)
 	service := NewService(stripePayment, orderGateaway)
+	serviceMiddleware := NewTelemetry(service)
 
-	consumer := NewConsumer(service)
+	consumer := NewConsumer(serviceMiddleware)
 	go consumer.Listen(channel)
 
 	mux := http.NewServeMux()

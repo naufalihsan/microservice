@@ -3,11 +3,13 @@ package main
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 
 	pb "github.com/naufalihsan/msvc-common/api"
 	"github.com/naufalihsan/msvc-common/broker"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"go.opentelemetry.io/otel"
 )
 
 type Consumer struct {
@@ -40,6 +42,11 @@ func (c *Consumer) Listen(channel *amqp.Channel, instanceId string) {
 
 	go func() {
 		for message := range messages {
+			// extract the headers
+			amqpCtx := broker.ExtractHeader(context.Background(), message.Headers)
+			tracer := otel.Tracer("amqp")
+			_, span := tracer.Start(amqpCtx, fmt.Sprintf("AMQP Consume %s", queue.Name))
+
 			log.Printf("message received %v", message)
 
 			order := &pb.Order{}
@@ -58,6 +65,9 @@ func (c *Consumer) Listen(channel *amqp.Channel, instanceId string) {
 
 				continue
 			}
+
+			span.AddEvent("order updated")
+			span.End()
 
 			message.Ack(false)
 
