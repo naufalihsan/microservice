@@ -38,14 +38,10 @@ func (h *GrpcHandler) CreateOrder(ctx context.Context, req *pb.CreateOrderReques
 	amqpCtx, span := tracer.Start(ctx, fmt.Sprintf("AMQP Publish %s", queue.Name))
 	defer span.End()
 
-	log.Println("new order received 🛒 from Customer", req.CustomerId)
-
 	order, err := h.service.CreateOrder(amqpCtx, req)
 	if err != nil {
 		return nil, err
 	}
-
-	log.Printf("order %s successfully created ✅", order.Id)
 
 	jsonOrder, err := json.Marshal(order)
 	if err != nil {

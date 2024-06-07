@@ -11,6 +11,7 @@ import (
 	"github.com/naufalihsan/msvc-common/broker"
 	"github.com/naufalihsan/msvc-common/discovery"
 	"github.com/naufalihsan/msvc-common/discovery/consul"
+	"go.uber.org/zap"
 	"google.golang.org/grpc"
 )
 
@@ -25,8 +26,13 @@ var (
 )
 
 func main() {
+	logger, _ := zap.NewProduction()
+	defer logger.Sync()
+
+	zap.ReplaceGlobals(logger)
+
 	if err := common.SetGlobalTracer(context.TODO(), common.OrderService, jaegerAddress); err != nil {
-		log.Fatal(err)
+		logger.Fatal(err.Error())
 	}
 
 	registry, err := consul.NewRegistry(consulAddress, common.OrderService)
@@ -44,7 +50,7 @@ func main() {
 	go func() {
 		for {
 			if err := registry.HealthCheck(instanceId, common.OrderService); err != nil {
-				log.Fatal("failed to health check")
+				logger.Fatal("failed to health check", zap.Error(err))
 			}
 
 			time.Sleep(time.Second * 1)
@@ -62,13 +68,13 @@ func main() {
 	grpcServer := grpc.NewServer()
 	listener, err := net.Listen("tcp", grpcAddress)
 	if err != nil {
-		log.Fatalf("failed to listen: %v", err)
+		logger.Fatal(err.Error())
 	}
 	defer listener.Close()
 
 	store := NewStore()
 	service := NewService(store)
-	serviceMiddleware := NewTelemetry(service)
+	serviceMiddleware := NewLogging(NewTelemetry(service))
 
 	consumer := NewConsumer(serviceMiddleware)
 	go consumer.Listen(channel, instanceId)
@@ -77,6 +83,6 @@ func main() {
 	log.Printf("Start gRPC server at port %s", grpcAddress)
 
 	if err := grpcServer.Serve(listener); err != nil {
-		log.Fatal(err.Error())
+		logger.Fatal(err.Error())
 	}
 }
