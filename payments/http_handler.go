@@ -14,6 +14,7 @@ import (
 	pb "github.com/naufalihsan/msvc-common/api"
 	"github.com/naufalihsan/msvc-common/broker"
 	amqp "github.com/rabbitmq/amqp091-go"
+	"go.opentelemetry.io/otel"
 
 	"github.com/stripe/stripe-go/v78"
 	"github.com/stripe/stripe-go/v78/webhook"
@@ -80,10 +81,17 @@ func (h *HttpHandler) handleStripeWebhook(w http.ResponseWriter, r *http.Request
 		defer cancel()
 
 		if session.PaymentStatus == "paid" {
-			h.channel.PublishWithContext(ctx, broker.OrderPaidEvent, "", false, false, amqp.Publishing{
+			tracer := otel.Tracer("amqp")
+			amqpContext, span := tracer.Start(ctx, fmt.Sprintf("AMQP Publish %s", broker.OrderPaidEvent))
+			defer span.End()
+
+			headers := broker.InjectHeaders(amqpContext)
+
+			h.channel.PublishWithContext(amqpContext, broker.OrderPaidEvent, "", false, false, amqp.Publishing{
 				ContentType: "application/json",
 				Body:        jsonOrder,
 				Priority:    amqp.Persistent,
+				Headers:     headers,
 			})
 		}
 	}

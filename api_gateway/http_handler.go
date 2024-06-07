@@ -1,11 +1,14 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 
 	"github.com/naufalihsan/msvc-api-gateway/gateway"
 	common "github.com/naufalihsan/msvc-common"
 	pb "github.com/naufalihsan/msvc-common/api"
+	"go.opentelemetry.io/otel"
+	otelCodes "go.opentelemetry.io/otel/codes"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/grpc/status"
 )
@@ -54,12 +57,18 @@ func (h *HttpHandler) handleCreateOrder(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	order, err := h.orderGateaway.CreateOrder(r.Context(), &pb.CreateOrderRequest{
+	tracer := otel.Tracer("http")
+	ctx, span := tracer.Start(r.Context(), fmt.Sprintf("%s %s", r.Method, r.RequestURI))
+	defer span.End()
+
+	order, err := h.orderGateaway.CreateOrder(ctx, &pb.CreateOrderRequest{
 		CustomerId:    customerId,
 		OrderProducts: orderProducts,
 	})
 
 	if errStatus := status.Convert(err); errStatus != nil {
+		span.SetStatus(otelCodes.Error, err.Error())
+
 		if errStatus.Code() != codes.InvalidArgument {
 			common.WriteError(w, http.StatusBadRequest, errStatus.Message())
 			return

@@ -14,11 +14,16 @@ import (
 )
 
 var (
+	jaegerAddress = common.EnvString("JAEGER_ADDR", "localhost:4318")
 	httpAddress   = common.EnvString("HTTP_ADDR", ":8000")
 	consulAddress = common.EnvString("CONSUL_ADDR", "localhost:8500")
 )
 
 func main() {
+	if err := common.SetGlobalTracer(context.TODO(), common.ApiGatewayService, jaegerAddress); err != nil {
+		log.Fatal(err)
+	}
+
 	registry, err := consul.NewRegistry(consulAddress, common.ApiGatewayService)
 	if err != nil {
 		panic(err)
