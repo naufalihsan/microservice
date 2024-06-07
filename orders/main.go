@@ -68,11 +68,12 @@ func main() {
 
 	store := NewStore()
 	service := NewService(store)
+	serviceMiddleware := NewTelemetry(service)
 
-	consumer := NewConsumer(service)
+	consumer := NewConsumer(serviceMiddleware)
 	go consumer.Listen(channel, instanceId)
 
-	NewGrpcHandler(grpcServer, service, channel)
+	NewGrpcHandler(grpcServer, serviceMiddleware, channel)
 	log.Printf("Start gRPC server at port %s", grpcAddress)
 
 	if err := grpcServer.Serve(listener); err != nil {

@@ -20,7 +20,7 @@ var (
 )
 
 func main() {
-	if err := common.SetGlobalTracer(context.TODO(), common.PaymentService, jaegerAddress); err != nil {
+	if err := common.SetGlobalTracer(context.TODO(), common.ApiGatewayService, jaegerAddress); err != nil {
 		log.Fatal(err)
 	}
 
