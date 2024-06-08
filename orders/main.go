@@ -23,6 +23,10 @@ var (
 	amqpPass      = common.EnvString("AMQP_PASS", "guest")
 	amqpHost      = common.EnvString("AMQP_HOST", "localhost")
 	amqpPort      = common.EnvString("AMQP_PORT", "5672")
+	mongoUser     = common.EnvString("MONGO_USER", "root")
+	mongoPass     = common.EnvString("MONGO_PASS", "example")
+	mongoHost     = common.EnvString("MONGO_HOST", "localhost")
+	mongoPort     = common.EnvString("MONGO_PORT", "27018")
 )
 
 func main() {
@@ -72,7 +76,12 @@ func main() {
 	}
 	defer listener.Close()
 
-	store := NewStore()
+	mongoClient, err := ConnectMongo(mongoUser, mongoPass, mongoHost, mongoPort)
+	if err != nil {
+		logger.Fatal("failed to connect to mongo db", zap.Error(err))
+	}
+
+	store := NewStore(mongoClient)
 	inventoryGateaway := gateway.NewGrpcGateway(registry)
 	service := NewService(store, inventoryGateaway)
 	serviceMiddleware := NewLogging(NewTelemetry(service))

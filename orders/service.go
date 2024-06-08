@@ -18,11 +18,20 @@ func NewService(store OrderStore, gateway gateway.InventoryGateaway) *Service {
 }
 
 func (s *Service) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.Order, error) {
-	return s.store.Get(ctx, req.CustomerId, req.OrderId)
+	order, err := s.store.Get(ctx, req.CustomerId, req.OrderId)
+	if err != nil {
+		return nil, err
+	}
+
+	return order.ToProto(), nil
 }
 
 func (s *Service) UpdateOrder(ctx context.Context, order *pb.Order) (*pb.Order, error) {
-	return s.store.Update(ctx, order)
+	err := s.store.Update(ctx, order.Id, order)
+	if err != nil {
+		return nil, err
+	}
+	return order, nil
 }
 
 func (s *Service) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (*pb.Order, error) {
@@ -31,12 +40,22 @@ func (s *Service) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (
 		return nil, err
 	}
 
-	order, err := s.store.Create(ctx, req, products)
+	orderId, err := s.store.Create(ctx, Order{
+		CustomerId: req.CustomerId,
+		Products:   products,
+		Status:     common.OrderStatusPending,
+	})
+
 	if err != nil {
 		return nil, err
 	}
 
-	return order, nil
+	return &pb.Order{
+		Id:         orderId.Hex(),
+		CustomerId: req.CustomerId,
+		Products:   products,
+		Status:     common.OrderStatusPending,
+	}, nil
 }
 
 func (s *Service) ValidateOrder(ctx context.Context, req *pb.CreateOrderRequest) ([]*pb.Product, error) {
