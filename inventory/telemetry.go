@@ -23,11 +23,11 @@ func (t *Telemetry) Get(ctx context.Context, ids []string) ([]*pb.Product, error
 	return t.next.Get(ctx, ids)
 }
 
-func (t *Telemetry) Validate(ctx context.Context, req []*pb.OrderProduct) (bool, []*pb.Product, error) {
+func (t *Telemetry) Validate(ctx context.Context, orderProducts []*pb.OrderProduct) ([]*pb.Product, error) {
 	span := trace.SpanFromContext(ctx)
-	span.AddEvent(fmt.Sprintf("Validate Inventory: %v", req))
+	span.AddEvent(fmt.Sprintf("Validate Inventory: %v", orderProducts))
 
-	return t.next.Validate(ctx, req)
+	return t.next.Validate(ctx, orderProducts)
 }
 
 func (t *Telemetry) Update(ctx context.Context, products []*pb.Product) error {
