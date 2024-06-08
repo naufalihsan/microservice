@@ -139,7 +139,7 @@
             document.getElementById('orderStatus').innerText = order.status;
 
             setTimeout(poolOrderStatus, 5000);
-        } else if (data.status === 'ready') {
+        } else if (data.status === 'delivered') {
             order.status = 'ready';
 
             // close payment popup

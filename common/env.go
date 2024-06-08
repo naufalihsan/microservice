@@ -13,6 +13,7 @@ var (
 	OrderStatusPending        = "pending"
 	OrderStatusPaid           = "paid"
 	OrderStatusWaitingPayment = "waiting_payment"
+	OrderStatusDelivered      = "delivered"
 )
 
 func EnvString(key, fallback string) string {
