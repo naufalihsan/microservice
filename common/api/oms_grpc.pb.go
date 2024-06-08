@@ -175,3 +175,125 @@ var OrderService_ServiceDesc = grpc.ServiceDesc{
 	Streams:  []grpc.StreamDesc{},
 	Metadata: "api/oms.proto",
 }
+
+// InventoryServiceClient is the client API for InventoryService service.
+//
+// For semantics around ctx use and closing/ending streaming RPCs, please refer to https://pkg.go.dev/google.golang.org/grpc/?tab=doc#ClientConn.NewStream.
+type InventoryServiceClient interface {
+	Get(ctx context.Context, in *GetInventoryRequest, opts ...grpc.CallOption) (*GetInventoryResponse, error)
+	Validate(ctx context.Context, in *ValidateInventoryRequest, opts ...grpc.CallOption) (*ValidateInventoryResponse, error)
+}
+
+type inventoryServiceClient struct {
+	cc grpc.ClientConnInterface
+}
+
+func NewInventoryServiceClient(cc grpc.ClientConnInterface) InventoryServiceClient {
+	return &inventoryServiceClient{cc}
+}
+
+func (c *inventoryServiceClient) Get(ctx context.Context, in *GetInventoryRequest, opts ...grpc.CallOption) (*GetInventoryResponse, error) {
+	out := new(GetInventoryResponse)
+	err := c.cc.Invoke(ctx, "/api.InventoryService/Get", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+func (c *inventoryServiceClient) Validate(ctx context.Context, in *ValidateInventoryRequest, opts ...grpc.CallOption) (*ValidateInventoryResponse, error) {
+	out := new(ValidateInventoryResponse)
+	err := c.cc.Invoke(ctx, "/api.InventoryService/Validate", in, out, opts...)
+	if err != nil {
+		return nil, err
+	}
+	return out, nil
+}
+
+// InventoryServiceServer is the server API for InventoryService service.
+// All implementations must embed UnimplementedInventoryServiceServer
+// for forward compatibility
+type InventoryServiceServer interface {
+	Get(context.Context, *GetInventoryRequest) (*GetInventoryResponse, error)
+	Validate(context.Context, *ValidateInventoryRequest) (*ValidateInventoryResponse, error)
+	mustEmbedUnimplementedInventoryServiceServer()
+}
+
+// UnimplementedInventoryServiceServer must be embedded to have forward compatible implementations.
+type UnimplementedInventoryServiceServer struct {
+}
+
+func (UnimplementedInventoryServiceServer) Get(context.Context, *GetInventoryRequest) (*GetInventoryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Get not implemented")
+}
+func (UnimplementedInventoryServiceServer) Validate(context.Context, *ValidateInventoryRequest) (*ValidateInventoryResponse, error) {
+	return nil, status.Errorf(codes.Unimplemented, "method Validate not implemented")
+}
+func (UnimplementedInventoryServiceServer) mustEmbedUnimplementedInventoryServiceServer() {}
+
+// UnsafeInventoryServiceServer may be embedded to opt out of forward compatibility for this service.
+// Use of this interface is not recommended, as added methods to InventoryServiceServer will
+// result in compilation errors.
+type UnsafeInventoryServiceServer interface {
+	mustEmbedUnimplementedInventoryServiceServer()
+}
+
+func RegisterInventoryServiceServer(s grpc.ServiceRegistrar, srv InventoryServiceServer) {
+	s.RegisterService(&InventoryService_ServiceDesc, srv)
+}
+
+func _InventoryService_Get_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(GetInventoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InventoryServiceServer).Get(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.InventoryService/Get",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InventoryServiceServer).Get(ctx, req.(*GetInventoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+func _InventoryService_Validate_Handler(srv interface{}, ctx context.Context, dec func(interface{}) error, interceptor grpc.UnaryServerInterceptor) (interface{}, error) {
+	in := new(ValidateInventoryRequest)
+	if err := dec(in); err != nil {
+		return nil, err
+	}
+	if interceptor == nil {
+		return srv.(InventoryServiceServer).Validate(ctx, in)
+	}
+	info := &grpc.UnaryServerInfo{
+		Server:     srv,
+		FullMethod: "/api.InventoryService/Validate",
+	}
+	handler := func(ctx context.Context, req interface{}) (interface{}, error) {
+		return srv.(InventoryServiceServer).Validate(ctx, req.(*ValidateInventoryRequest))
+	}
+	return interceptor(ctx, in, info, handler)
+}
+
+// InventoryService_ServiceDesc is the grpc.ServiceDesc for InventoryService service.
+// It's only intended for direct use with grpc.RegisterService,
+// and not to be introspected or modified (even as a copy)
+var InventoryService_ServiceDesc = grpc.ServiceDesc{
+	ServiceName: "api.InventoryService",
+	HandlerType: (*InventoryServiceServer)(nil),
+	Methods: []grpc.MethodDesc{
+		{
+			MethodName: "Get",
+			Handler:    _InventoryService_Get_Handler,
+		},
+		{
+			MethodName: "Validate",
+			Handler:    _InventoryService_Validate_Handler,
+		},
+	},
+	Streams:  []grpc.StreamDesc{},
+	Metadata: "api/oms.proto",
+}

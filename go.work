@@ -7,5 +7,4 @@ use (
 	./inventory
 	./orders
 	./payments
-	./products
 )

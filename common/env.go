@@ -6,6 +6,7 @@ var (
 	ApiGatewayService = "apiGateway"
 	OrderService      = "orders"
 	PaymentService    = "payments"
+	InventoryService  = "inventory"
 )
 
 var (

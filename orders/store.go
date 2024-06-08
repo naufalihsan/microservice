@@ -3,74 +3,70 @@ package main
 import (
 	"context"
 	"fmt"
-	"math/rand"
-	"strconv"
+	"time"
 
-	common "github.com/naufalihsan/msvc-common"
 	pb "github.com/naufalihsan/msvc-common/api"
+	"go.mongodb.org/mongo-driver/bson"
+	"go.mongodb.org/mongo-driver/bson/primitive"
+	"go.mongodb.org/mongo-driver/mongo"
+	"go.mongodb.org/mongo-driver/mongo/options"
+	"go.mongodb.org/mongo-driver/mongo/readpref"
 )
 
-// temp inmem store
-var inmemStore = make(map[string]*pb.Order)
+const (
+	DbName   = "orders"
+	CollName = "orders"
+)
+
+func ConnectMongo(user, pass, host, port string) (*mongo.Client, error) {
+	uri := fmt.Sprintf("mongodb://%s:%s@%s:%s", user, pass, host, port)
+	ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
+	defer cancel()
+
+	client, err := mongo.Connect(ctx, options.Client().ApplyURI(uri))
+	if err != nil {
+		return nil, err
+	}
+
+	err = client.Ping(ctx, readpref.Primary())
+	return client, err
+}
 
 type Store struct {
-	// connect to mongodb
+	db *mongo.Client
 }
 
-func NewStore() *Store {
-	return &Store{}
+func NewStore(db *mongo.Client) *Store {
+	return &Store{db}
 }
 
-func (s *Store) Create(ctx context.Context, req *pb.CreateOrderRequest, products []*pb.Product) (*pb.Order, error) {
-	uniqueId := strconv.Itoa(rand.Intn(1000))
-	customerId := req.CustomerId
+func (s *Store) Create(ctx context.Context, order Order) (primitive.ObjectID, error) {
+	col := s.db.Database(DbName).Collection(CollName)
+	newOrder, err := col.InsertOne(ctx, order)
 
-	uniqueKey := GenerateUniqueKey(customerId, uniqueId)
-
-	order := &pb.Order{
-		Id:         uniqueId,
-		CustomerId: customerId,
-		Status:     common.OrderStatusPending,
-		Products:   products,
-	}
-
-	inmemStore[uniqueKey] = order
-
-	return order, nil
+	return newOrder.InsertedID.(primitive.ObjectID), err
 }
 
-func (s *Store) Get(ctx context.Context, customerId, orderId string) (*pb.Order, error) {
-	uniqueKey := GenerateUniqueKey(customerId, orderId)
+func (s *Store) Get(ctx context.Context, customerId, orderId string) (*Order, error) {
+	col := s.db.Database(DbName).Collection(CollName)
+	objOrderId, _ := primitive.ObjectIDFromHex(orderId)
 
-	order, ok := inmemStore[uniqueKey]
-	if !ok {
-		return nil, common.ErrInvalidOrder
-	}
+	var order Order
+	err := col.FindOne(ctx, bson.M{"_id": objOrderId, "customerId": customerId}).Decode(&order)
 
-	return order, nil
+	return &order, err
 }
 
-func (s *Store) Update(ctx context.Context, order *pb.Order) (*pb.Order, error) {
-	uniqueKey := GenerateUniqueKey(order.CustomerId, order.Id)
+func (s *Store) Update(ctx context.Context, orderId string, order *pb.Order) error {
+	col := s.db.Database(DbName).Collection(CollName)
+	objOrderId, _ := primitive.ObjectIDFromHex(orderId)
 
-	updateOrder, ok := inmemStore[uniqueKey]
-	if !ok {
-		return nil, common.ErrInvalidOrder
-	}
+	_, err := col.UpdateOne(ctx,
+		bson.M{"_id": objOrderId},
+		bson.M{"$set": bson.M{
+			"paymentLink": order.PaymentLink,
+			"status":      order.Status,
+		}})
 
-	if order.Status != "" {
-		updateOrder.Status = order.Status
-	}
-
-	if order.PaymentLink != "" {
-		updateOrder.PaymentLink = order.PaymentLink
-	}
-
-	inmemStore[uniqueKey] = updateOrder
-
-	return updateOrder, nil
-}
-
-func GenerateUniqueKey(customerId, orderId string) string {
-	return fmt.Sprintf("%s-%s", customerId, orderId)
+	return err
 }
