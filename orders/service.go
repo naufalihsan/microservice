@@ -5,14 +5,16 @@ import (
 
 	common "github.com/naufalihsan/msvc-common"
 	pb "github.com/naufalihsan/msvc-common/api"
+	"github.com/naufalihsan/msvc-orders/gateway"
 )
 
 type Service struct {
-	store OrderStore
+	store   OrderStore
+	gateway gateway.InventoryGateaway
 }
 
-func NewService(store OrderStore) *Service {
-	return &Service{store}
+func NewService(store OrderStore, gateway gateway.InventoryGateaway) *Service {
+	return &Service{store, gateway}
 }
 
 func (s *Service) GetOrder(ctx context.Context, req *pb.GetOrderRequest) (*pb.Order, error) {
@@ -38,12 +40,6 @@ func (s *Service) CreateOrder(ctx context.Context, req *pb.CreateOrderRequest) (
 }
 
 func (s *Service) ValidateOrder(ctx context.Context, req *pb.CreateOrderRequest) ([]*pb.Product, error) {
-	// temp inmem price id
-	priceTable := map[string]string{
-		"1": "price_1PM586FsDc9cxjmW18I8bBu3",
-		"2": "price_1PM59AFsDc9cxjmW6TCaCDfZ",
-	}
-
 	if len(req.OrderProducts) == 0 {
 		return nil, common.ErrEmptyOrderProducts
 	}
@@ -56,12 +52,9 @@ func (s *Service) ValidateOrder(ctx context.Context, req *pb.CreateOrderRequest)
 
 	orderProducts := mergeOrderProductQuantity(req.OrderProducts)
 
-	products := []*pb.Product{}
-	for _, orderProduct := range orderProducts {
-		products = append(products, &pb.Product{
-			PriceId:  priceTable[orderProduct.ProductId],
-			Quantity: orderProduct.Quantity,
-		})
+	products, err := s.gateway.Validate(ctx, orderProducts)
+	if err != nil {
+		return nil, err
 	}
 
 	return products, nil

@@ -38,3 +38,25 @@ message GetOrderRequest {
     string customerId = 1;
     string orderId = 2;
 }
+
+service InventoryService {
+    rpc Get(GetInventoryRequest) returns (GetInventoryResponse);
+    rpc Validate(ValidateInventoryRequest) returns (ValidateInventoryResponse);
+}
+
+message GetInventoryRequest {
+    repeated string ids = 1;
+}
+
+message GetInventoryResponse {
+    repeated Product products = 1;
+}
+
+message ValidateInventoryRequest {
+    repeated OrderProduct orderProducts = 1; 
+}
+
+message ValidateInventoryResponse {
+    bool status = 1;
+    repeated Product products = 2;
+}
